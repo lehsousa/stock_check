@@ -1,262 +1,95 @@
-# 📦 Stock Check - Sistema de Controle de Estoque
+# Stock Check | IT Asset Inventory Reconciliation
 
-Sistema de verificação física de equipamentos com integração ao **Lansweeper**.
+**Python · Streamlit · Pandas · Lansweeper exports · IT Asset Management**
 
-## 📋 Descrição
+[English](#english) | [Português](#português)
 
-O **Stock Check** é uma aplicação web desenvolvida em **Streamlit** que facilita a verificação física de notebooks e equipamentos em estoque, comparando os itens escaneados fisicamente com a base de dados exportada do Lansweeper.
+## English
 
-### Funcionalidades Principais
+### Overview
 
-- 📥 **Upload de base Lansweeper** - Importação de arquivo Excel com validação completa de estrutura e dados
-- 📊 **Preview de Dados** - Visualização com estatísticas, gráficos de distribuição e primeiros registros
-- 📷 **Leitura de códigos de barras** - Suporte a QR Code, Code 128 e entrada manual (input direto)
-- 🔍 **Comparação em tempo real** - Verificação instantânea do serial vs base de dados
-- ✅ **Validação automatizada** - Validação de estados, detecção de equipamentos ativos e verificação de colunas obrigatórias
-- ⚠️ **Detecção de inconsistências** - Identifica equipamentos com estado "active" mostrando hostname e usuário
-- 📈 **Relatórios completos** - Métricas de verificação, histórico de escaneamentos e estatísticas detalhadas
-- 📤 **Exportação de relatórios** - Gera lista de itens que requerem ajuste manual no Lansweeper com timestamp
+Stock Check supports the physical verification of notebooks and other IT equipment against an Excel inventory exported from Lansweeper. It connects asset records with the equipment being checked, helping a support team identify discrepancies that need investigation.
 
----
+Developed in partnership by **Leandro Sousa de Jesus** ([lehsousa](https://github.com/lehsousa)) and **Wagner** ([wagnerws](https://github.com/wagnerws)). This repository is a fork of [wagnerws/stock_check](https://github.com/wagnerws/stock_check); the fork relationship and shared contribution history are part of the project.
 
-## 🎯 Estados Válidos
+### Implemented workflow
 
-O sistema reconhece os seguintes estados de equipamentos:
+1. Import an inventory spreadsheet and validate its required columns.
+2. Enter or scan a serial number through the text input, including keyboard-style barcode readers.
+3. Match the equipment by serial number or asset tag.
+4. Normalize supported Portuguese and English equipment states.
+5. Flag equipment found in stock whose inventory status is still active.
+6. Review session progress, discrepancies and inventory distribution by model.
+7. Export adjustment lists and scan history as Excel files; review locally saved session history.
 
-| Estado | Descrição | Status |
-|--------|-----------|--------|
-| `stock` | Em estoque | ✅ OK |
-| `broken` | Quebrado | ✅ OK |
-| `stolen` | Roubado | ✅ OK |
-| `in repair` | Em reparo | ✅ OK |
-| `old` | Equipamento antigo | ✅ OK |
-| `active` | Ativo (em uso) | ⚠️ Requer ajuste |
+The application integrates with **exported Lansweeper data**. It does not update Lansweeper automatically. SharePoint synchronization is not implemented in the current local-storage workflow, even though some service function names mention SharePoint.
 
-**Regra de negócio:** Equipamentos físicos em estoque **não devem** estar com estado "active".
+### Technical design
 
----
+- **Interface:** Streamlit components for upload, verification, reporting and history.
+- **Data processing:** Pandas and OpenPyXL.
+- **Business logic:** separate services for validation, comparison and reporting.
+- **Persistence:** local JSON session files under `data/sessions/`.
+- **Testing:** pytest modules covering import, comparison, validation, state normalization and report metrics.
 
-## 🚀 Quick Start
+The UI currently identifies itself as **v0.8.0**. Older planning documents may describe earlier milestones. The repository includes tests; no current passing-test or coverage percentage is claimed by this README.
 
-### Pré-requisitos
+### Run locally
 
-- Python 3.9+
-- pip
+Use Python 3.11+ and an isolated environment. From the repository root:
 
-### Instalação
-
-1. **Clone o repositório:**
-
-```bash
-git clone <repository-url>
-cd stock_check
-```
-
-2. **Crie um ambiente virtual:**
-
-```bash
-python -m venv venv
-```
-
-3. **Ative o ambiente virtual:**
-
-**Windows:**
 ```powershell
-.\venv\Scripts\activate
+git clone --branch dev https://github.com/lehsousa/stock_check.git
+cd stock_check
+python -m venv .venv
+.venv\Scripts\python -m pip install -r requirements.txt
+.venv\Scripts\python -m streamlit run app/main.py
 ```
 
-**Linux/macOS:**
-```bash
-source venv/bin/activate
+On macOS/Linux, use `.venv/bin/python` instead. Barcode-related packages may require platform-specific native libraries.
+
+The Excel import expects `Serialnumber`, `State`, `Name` and `lastuser`. `Ativo` is optional; model/OS/type columns support additional inventory filtering. Use an `.xlsx` file compatible with the importer.
+
+```powershell
+.venv\Scripts\python -m pytest tests/unit/
 ```
 
-4. **Instale as dependências:**
+### Scope and data
 
-```bash
-pip install -r requirements.txt
-```
+Use synthetic or appropriately anonymized inventories for public demonstrations. Imported files and saved sessions can contain user names, hostnames and asset identifiers. Review application-specific labels and access controls before deploying beyond a local environment.
 
-5. **Configure as variáveis de ambiente (opcional):**
+The original repository describes this project as intended for internal use. No new open-source license is granted by this documentation update.
 
-```bash
-cp .env.example .env
-# Edite o arquivo .env conforme necessário
-```
+### Professional relevance
 
----
+IT asset reconciliation, endpoint inventory quality, Service Desk tooling, Python automation and operational reporting. This project does not claim a Microsoft Intune or Microsoft Graph integration.
 
-## 💻 Executando a Aplicação
+## Português
 
-### Modo Desenvolvimento
+### Visão geral
 
-```bash
-streamlit run app/main.py
-```
+O Stock Check apoia a conferência física de notebooks e equipamentos de TI usando uma planilha exportada do Lansweeper. A aplicação relaciona os registros do inventário aos equipamentos conferidos e destaca divergências para investigação pela equipe de suporte.
 
-A aplicação estará disponível em: **http://localhost:8501**
+Projeto desenvolvido em parceria por **Leandro Sousa de Jesus e Wagner**. Este repositório mantém o vínculo de fork com [wagnerws/stock_check](https://github.com/wagnerws/stock_check).
 
-### Modo Produção
+### Funcionalidades implementadas
 
-Para deploy em produção, utilize o **Streamlit Cloud** ou outro serviço compatível.
+- Importação de Excel com validação de colunas.
+- Conferência por número de série ou patrimônio, com entrada manual ou leitor que funciona como teclado.
+- Normalização de estados em português e inglês.
+- Identificação de equipamentos presentes no estoque que ainda constam como ativos.
+- Indicadores de progresso e distribuição de equipamentos por modelo.
+- Exportação de ajustes e histórico em Excel.
+- Histórico de sessões salvo localmente em JSON.
 
----
+A integração ocorre por **exportação de dados do Lansweeper**, sem alteração automática da ferramenta. A sincronização com SharePoint permanece fora do fluxo implementado.
 
-## 🧪 Testes
+### Execução e estrutura
 
-### Executar todos os testes:
+Os comandos da seção em inglês instalam as dependências de `requirements.txt`, iniciam a aplicação e executam os testes unitários. A interface fica em `app/components/`; regras de negócio e processamento ficam em `app/services/`; os testes ficam em `tests/unit/`.
 
-```bash
-pytest
-```
+A interface informa **v0.8.0**. A documentação de planejamento pode conter marcos antigos. A existência de testes no repositório não representa uma execução ou cobertura atual certificada.
 
-### Executar com cobertura:
+### Aplicação profissional
 
-```bash
-pytest --cov=app --cov-report=html
-```
-
-O relatório de cobertura estará em `htmlcov/index.html`.
-
-### Executar testes de um módulo específico:
-
-```bash
-pytest tests/unit/
-pytest tests/integration/
-```
-
----
-
-## 📁 Estrutura do Projeto
-
-```
-stock_check/
-├── app/
-│   ├── __init__.py
-│   ├── main.py                      # Entry point Streamlit
-│   ├── config.py                    # Configurações da aplicação
-│   ├── components/                  # Componentes UI
-│   │   ├── upload_component.py      # Upload e preview de Excel
-│   │   ├── scanner_input.py         # Input de código de barras
-│   │   ├── comparison_component.py  # Comparação e exibição de resultados
-│   │   └── report_component.py      # Relatórios e métricas
-│   ├── services/                    # Lógica de negócio
-│   │   ├── excel_handler.py         # Importação/exportação Excel
-│   │   ├── barcode_handler.py       # Processamento de códigos de barras
-│   │   ├── validator.py             # Validação de estados e dados
-│   │   ├── comparator.py            # Comparação serial x base
-│   │   └── report_metrics.py        # Métricas e estatísticas
-│   └── utils/                       # Utilitários
-│       ├── constants.py             # Estados válidos, configs
-│       └── helpers.py               # Funções auxiliares
-├── tests/
-│   ├── conftest.py                  # Fixtures pytest
-│   ├── unit/                        # Testes unitários
-│   │   ├── test_excel_handler.py
-│   │   ├── test_validator.py
-│   │   ├── test_comparator.py
-│   │   └── test_report_metrics.py
-│   ├── integration/                 # Testes de integração
-│   └── fixtures/                    # Arquivos Excel de teste
-├── docs/                            # Documentação do projeto
-│   ├── backlog.md
-│   ├── config.md
-│   ├── historico.md
-│   ├── aprendizado.md
-│   └── persona.md
-├── .env.example                     # Exemplo de variáveis de ambiente
-├── .gitignore
-├── requirements.txt                 # Dependências Python
-└── README.md                        # Este arquivo
-```
-
----
-
-## 🔒 Segurança
-
-### Boas Práticas Implementadas
-
-- ✅ Validação de tamanho e tipo de arquivos Excel (máx: 10 MB)
-- ✅ Sanitização de valores para prevenir formula injection
-- ✅ Validação de inputs de usuário (seriais, estados)
-- ✅ Variáveis sensíveis em `.env` (nunca no código)
-- ✅ `.gitignore` configurado para não versionar credenciais
-
-### Variáveis de Ambiente
-
-Crie um arquivo `.env` baseado no `.env.example`:
-
-```env
-DEBUG=False
-LOG_LEVEL=INFO
-```
-
----
-
-## 🛠️ Stack Tecnológico
-
-- **Framework:** Streamlit 1.30+
-- **Processamento de Dados:** Pandas, OpenPyXL
-- **Leitura de Códigos:** OpenCV, PyZBar
-- **Testes:** pytest, pytest-cov
-- **Deploy:** Streamlit Cloud / Railway
-
----
-
-## 📊 Status do Projeto
-
-### Progresso Geral: **50% Concluído** (7/14 tarefas)
-
-| Fase | Status |
-|------|--------|
-| ✅ **P1-001:** Decisão de Arquitetura | Concluída |
-| ✅ **P1-002:** Estrutura Base | Concluída |
-| ✅ **P1-003:** Módulo de Importação Excel | Concluída |
-| ✅ **P1-004:** Interface de Upload e Preview | Concluída |
-| ✅ **P1-005:** Integração com Scanner | Concluída |
-| ✅ **P2-001:** Validação de Estados | Concluída |
-| ✅ **P2-002:** Comparação Serial x Base | Concluída |
-| 🚧 **P2-003:** Interface de Verificação em Tempo Real | Em desenvolvimento |
-| 🚧 **P2-004:** Exportação para Excel | Planejada |
-| 🟡 **P3:** Funcionalidades Avançadas | Pendente |
-
-### Testes Implementados
-- ✅ 15 testes unitários para `excel_handler.py` (100% passando)
-- ✅ 7 testes unitários para `validator.py` (100% passando)
-- ✅ 9 testes unitários para `comparator.py` (100% passando)
-- ✅ 5 testes unitários para `report_metrics.py` (100% passando)
-- **Total:** 36 testes unitários | **Taxa de sucesso:** 100%
-
----
-
-## 📝 Documentação Adicional
-
-- [Backlog de Tarefas](docs/backlog.md)
-- [Histórico de Desenvolvimento](docs/historico.md)
-- [Configurações do Projeto](docs/config.md)
-- [Aprendizados e Boas Práticas](docs/aprendizado.md)
-- [Persona do Desenvolvedor](docs/persona.md)
-
----
-
-## 🤝 Contribuindo
-
-1. Crie uma branch para sua feature (`git checkout -b feature/nova-feature`)
-2. Commit suas mudanças (`git commit -m 'Adiciona nova feature'`)
-3. Push para a branch (`git push origin feature/nova-feature`)
-4. Abra um Pull Request
-
----
-
-## 📄 Licença
-
-Este projeto é de uso interno.
-
----
-
-## 👤 Autor
-
-Desenvolvido com ❤️ para otimizar o controle de estoque físico.
-
-**Versão:** 0.2.0  
-**Última atualização:** 2026-01-10  
-**Progresso:** 50% (7/14 tarefas concluídas)
+O projeto demonstra aplicação de Python à gestão de ativos de TI, qualidade de inventário, conferência de endpoints e apoio às operações de Service Desk. Demonstrações públicas devem usar dados fictícios ou anonimizados. O caráter de uso interno indicado na documentação anterior foi preservado.
